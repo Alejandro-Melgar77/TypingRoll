@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=M+PLUS+Rounded+1c:wght@500;800&display=swap');
+
+:root {
+  /* Ghibli/Kawaii Pastel Theme */
+  --color-primary: #8bd3dd;      /* Cyan pastel */
+  --color-secondary: #cbaacb;    /* Soft Purple (menos rosa) */
+  --color-accent: #ffebb3;       /* Pastel Yellow */
+  
+  --color-bg-light: #f4f9f9;     /* Off white / very light cyan */
+  --color-bg-dark: #202b38;      /* Deep blue/grey for dark mode */
+  
+  --color-text: #4a4e69;         /* Dark grey/blue */
+  --color-text-light: #f4f9f9;
+  --color-cloud-face: #2c3e50;   /* Cara siempre oscura */
+  
+  --color-success: #a8e6cf;      /* Mint */
+  --color-error: #ffb380;        /* Pastel Orange (menos rosa) */
+  --color-panel-bg: rgba(255, 255, 255, 0.95);
+  --color-btn-bg: #eee;
+  --color-input-border: #eee;
+  
+  /* Tier Backgrounds (Sky colors) */
+  --color-sky-1: #c5f0f3;        /* Happy - bright morning */
+  --color-sky-2: #ffeaa7;        /* Neutral - noon/yellowish */
+  --color-sky-3: #ffdac1;        /* Annoyed - sunset */
+  --color-sky-4: #cbaacb;        /* Angry - twilight */
+  --color-sky-5: #352f44;        /* Furious - night storm */
+  
+  --font-main: 'Nunito', sans-serif;
+  --font-display: 'M PLUS Rounded 1c', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  color: var(--color-text);
+  background-color: var(--color-bg-light);
+  transition: background-color 0.5s ease, color 0.5s ease;
+  overflow: hidden; /* Juego a pantalla completa, sin scroll */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  font-family: var(--font-display);
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+/* Utilidades Base */
+.full-screen {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tema Oscuro Global */
+[data-theme="dark"] {
+  --color-bg-light: #202b38;
+  --color-text: #f4f9f9;
+  --color-primary: #3d5a80;
+  --color-secondary: #6b5b95; /* Dark Purple */
+  --color-sky-1: #2a3d4f;
+  --color-sky-2: #3e3b32;
+  --color-sky-3: #4a3831;
+  --color-sky-4: #4b344b;
+  --color-sky-5: #1c1825;
+  --color-panel-bg: rgba(32, 43, 56, 0.95);
+  --color-btn-bg: #3d5a80;
+  --color-input-border: #4a4e69;
+}

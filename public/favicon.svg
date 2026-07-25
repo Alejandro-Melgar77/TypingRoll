@@ -1,0 +1,9 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M18 46C11.3726 46 6 40.6274 6 34C6 28.0285 10.3638 23.0694 16.0827 22.1523C17.6599 15.2285 23.8504 10 31.5 10C37.893 10 43.3421 13.9103 45.6983 19.4678C46.8837 19.1645 48.1633 19 49.5 19C55.8513 19 61 24.1487 61 30.5C61 36.8513 55.8513 42 49.5 42H48" stroke="#8bd3dd" stroke-width="4" stroke-linecap="round"/>
+  <path d="M18 46H48" stroke="#8bd3dd" stroke-width="4" stroke-linecap="round"/>
+  <!-- Ojos -->
+  <circle cx="24" cy="30" r="3" fill="#2c3e50"/>
+  <circle cx="40" cy="30" r="3" fill="#2c3e50"/>
+  <!-- Sonrisa -->
+  <path d="M29 34C29 34 30.5 37 32 37C33.5 37 35 34 35 34" stroke="#2c3e50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

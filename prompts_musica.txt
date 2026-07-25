@@ -1,0 +1,30 @@
+=========================================================
+ESPECIFICACIÓN DE MÚSICA IMPLEMENTADA
+=========================================================
+TypingRoll usa síntesis procedural con Web Audio API; no requiere licencias ni archivos externos.
+Todas las fases conservan C menor y 150 BPM para que el progreso se sienta continuo. El cambio de tensión se logra con timbre, armonía y percusión, nunca acelerando el tempo de forma incontrolable.
+
+=========================================================
+GUÍA PARA REEMPLAZARLA POR PISTAS PRODUCIDAS
+=========================================================
+Si en el futuro se incorporan pistas musicales, exportar bucles sin voces a 150 BPM, C menor, con una duración múltiplo de 4 compases. Mantener el volumen integrado por debajo de -14 LUFS y prever un fundido de 150–250 ms al cambiar de fase.
+
+FASE 1 (Nivel Fácil - Relajado y tierno)
+PROMPT: 
+"Instrumental, 150 BPM, C minor. Cute romantic kawaii anime lo-fi, soft acoustic guitar, gentle glockenspiel, light relaxing ambient, cozy and peaceful video game menu music, no vocals."
+
+FASE 2 (Nivel Normal - Empieza el movimiento)
+PROMPT: 
+"Instrumental, 150 BPM, C minor. Upbeat J-pop, light energetic drums, clean electric guitar chords, happy anime opening style, positive energy, video game stage 1 music, no vocals."
+
+FASE 3 (Nivel Intermedio - Tensión y acción)
+PROMPT: 
+"Instrumental, 150 BPM, C minor. Energetic J-rock, fast driving drums, overdriven rhythm guitars, catchy lead guitar melody, action video game stage music, intense but melodic, no vocals."
+
+FASE 4 (Nivel Difícil - Adrenalina pura)
+PROMPT: 
+"Instrumental, 150 BPM, C minor. Hard rock, aggressive drumming, heavy distorted guitar riffs, fast pace, intense action, high energy video game combat music, no vocals."
+
+FASE 5 (Nivel Extremo - Tormenta de tipeo)
+PROMPT: 
+"Instrumental, 150 BPM, C minor. Extreme aggressive heavy metal, fast double kick drums, blast beats, heavy distorted chugging guitar riffs, epic shredding guitar solo, frantic boss fight music, dark and intense, no vocals."
