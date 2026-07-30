@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createRun, reduceRun, resultFromRun } from './engine';
+import { createMathChallenge } from './math';
 import type { RunConfig, Tier } from './types';
 
 const words: Record<Tier, readonly string[]> = {
@@ -80,5 +81,42 @@ describe('motor de partida', () => {
     for (const key of 'SOL') state = reduceRun(state, { type: 'key', key }).state;
     expect(state.score).toBe(820);
     expect(state.tier).toBe(2);
+  });
+
+  it('genera desafíos matemáticos deterministas y divisiones exactas', () => {
+    const first = createMathChallenge('math_division', 4, 77);
+    const second = createMathChallenge('math_division', 4, 77);
+    expect(first).toEqual(second);
+    const [dividend, divisor] = first.challenge.prompt.match(/(\d+) ÷ (\d+)/)?.slice(1).map(Number) ?? [];
+    expect(dividend % divisor).toBe(0);
+    expect(first.challenge.answer).toBe(String(dividend / divisor));
+  });
+
+  it('genera fracciones con resultado positivo y reducido', () => {
+    for (let seed = 1; seed <= 60; seed += 1) {
+      const challenge = createMathChallenge('math_fractions', 5, seed).challenge;
+      const [numerator, denominator] = challenge.answer.split('/').map(Number);
+      const gcd = (left: number, right: number): number => right ? gcd(right, left % right) : left;
+      expect(numerator).toBeGreaterThan(0);
+      expect(denominator).toBeGreaterThan(0);
+      expect(gcd(numerator, denominator)).toBe(1);
+    }
+  });
+
+  it('sube la fase matemática cada seis respuestas exactas y nunca la baja', () => {
+    let state = tickUntilCloud(createRun(config({ gameMode: 'math_addition', baseTier: 1 })));
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const answer = state.clouds[0].answer ?? '';
+      for (const key of answer) state = reduceRun(state, { type: 'key', key }).state;
+      state = reduceRun(state, { type: 'confirm' }).state;
+      if (attempt < 5) {
+        state = { ...state, nextSpawnAtMs: state.elapsedMs };
+        state = reduceRun(state, { type: 'tick', deltaMs: 16 }).state;
+      }
+    }
+    expect(state.tier).toBe(2);
+    expect(state.mathCorrectAtTier).toBe(0);
+    const afterDamage = reduceRun(state, { type: 'key', key: 'Z' }).state;
+    expect(afterDamage.tier).toBe(2);
   });
 });

@@ -3,7 +3,9 @@
  * contain no persistence or store-specific fields so web, desktop and mobile
  * can render the same screens.
  */
-export type PlayableMode = 'classic' | 'es_en' | 'en_es';
+import type { GameMode } from '../../game/domain/types';
+
+export type PlayableMode = GameMode;
 
 export interface DailyMissionPreview {
   id: string;

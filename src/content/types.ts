@@ -25,6 +25,20 @@ export type CosmeticKind =
 
 export type GameContentMode = 'classic' | 'es_en' | 'en_es';
 
+export type ParagraphCategory = 'poetic' | 'motivational-literature' | 'romanticism' | 'self-improvement' | 'biblical-self-help' | 'constructive-dialogues';
+export type ParagraphMode = 'classic' | ParagraphCategory;
+export type ParagraphContentOrigin = 'typingroll-original' | 'scripture-reflection';
+
+export interface ParagraphEntry {
+  id: string;
+  text: string;
+  category: ParagraphCategory;
+  origin: ParagraphContentOrigin;
+  /** Biblical entries point to a passage, but use an original reflection instead of reproducing a translation. */
+  sourceReference?: string;
+  isSafe: true;
+}
+
 export interface ContentPack {
   id: string;
   version: number;

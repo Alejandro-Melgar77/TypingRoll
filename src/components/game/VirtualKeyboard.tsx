@@ -3,6 +3,7 @@ import './VirtualKeyboard.css';
 interface Props {
   onKeyPress: (key: string) => void;
   showControls?: boolean;
+  showResponseKeys?: boolean;
 }
 
 const rows = [
@@ -11,7 +12,7 @@ const rows = [
   ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
 ];
 
-export function VirtualKeyboard({ onKeyPress, showControls = false }: Props) {
+export function VirtualKeyboard({ onKeyPress, showControls = false, showResponseKeys = false }: Props) {
   return (
     <div className="virtual-keyboard" aria-label="Teclado virtual">
       {rows.map((row) => (
@@ -21,6 +22,11 @@ export function VirtualKeyboard({ onKeyPress, showControls = false }: Props) {
           ))}
         </div>
       ))}
+      {showResponseKeys && (
+        <div className="keyboard-row keyboard-response-row">
+          {['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '/'].map((key) => <button key={key} className="keyboard-key" onClick={() => onKeyPress(key)}>{key}</button>)}
+        </div>
+      )}
       {showControls && (
         <div className="keyboard-row keyboard-controls">
           <button className="keyboard-key keyboard-key-wide" onClick={() => onKeyPress('Backspace')} aria-label="Borrar">⌫ Borrar</button>

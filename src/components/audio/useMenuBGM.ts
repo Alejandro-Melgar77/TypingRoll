@@ -1,126 +1,109 @@
 import { useEffect, useRef } from 'react';
+import type { ParagraphCategory } from '../../content/types';
 
-// Escala estilo dream-pop / anime romance (Db Major 7 / Bb minor 7)
-const scale = [
-  277.18, // Db4
-  349.23, // F4
-  415.30, // Ab4
-  523.25, // C5
-  554.37, // Db5
-  698.46, // F5
-  830.61, // Ab5
-];
+export type BgmMood = 'menu' | ParagraphCategory;
 
-export const useMenuBGM = (musicOn: boolean, volume: number) => {
+interface BgmProfile {
+  scale: readonly number[];
+  pattern: readonly number[];
+  interval: number;
+  release: number;
+  primaryWave: OscillatorType;
+  secondaryWave: OscillatorType;
+}
+
+const BGM_PROFILES: Readonly<Record<BgmMood, BgmProfile>> = {
+  menu: { scale: [277.18, 349.23, 415.3, 523.25, 554.37, 698.46, 830.61], pattern: [0, 2, 4, 1, 3, 5, 2, 4, 6, 3, 5, 1], interval: 0.25, release: 1.2, primaryWave: 'sine', secondaryWave: 'triangle' },
+  poetic: { scale: [293.66, 369.99, 440, 587.33, 659.25, 739.99, 880], pattern: [0, 3, 1, 4, 2, 5, 3, 6, 4, 1], interval: 0.42, release: 1.8, primaryWave: 'sine', secondaryWave: 'sine' },
+  'motivational-literature': { scale: [220, 277.18, 329.63, 440, 554.37, 659.25, 880], pattern: [0, 2, 4, 6, 4, 2, 1, 3, 5, 3], interval: 0.3, release: 1.1, primaryWave: 'triangle', secondaryWave: 'sine' },
+  romanticism: { scale: [261.63, 329.63, 392, 493.88, 523.25, 659.25, 783.99], pattern: [0, 2, 4, 1, 3, 5, 6, 4, 2, 1], interval: 0.36, release: 1.65, primaryWave: 'sine', secondaryWave: 'triangle' },
+  'self-improvement': { scale: [261.63, 293.66, 392, 440, 523.25, 587.33, 783.99], pattern: [0, 1, 3, 4, 2, 5, 4, 6, 3, 1], interval: 0.32, release: 1.25, primaryWave: 'triangle', secondaryWave: 'sine' },
+  'biblical-self-help': { scale: [196, 246.94, 293.66, 392, 440, 493.88, 587.33], pattern: [0, 2, 4, 3, 1, 5, 4, 2, 6, 3], interval: 0.5, release: 2.1, primaryWave: 'sine', secondaryWave: 'sine' },
+  'constructive-dialogues': { scale: [329.63, 392, 493.88, 587.33, 659.25, 783.99, 987.77], pattern: [0, 2, 1, 4, 3, 5, 2, 6, 4, 1], interval: 0.28, release: 1.05, primaryWave: 'triangle', secondaryWave: 'sine' },
+};
+
+export const bgmProfileForMood = (mood: BgmMood): BgmProfile => BGM_PROFILES[mood];
+
+/** Small procedural BGM profiles keep every screen license-free and mutually exclusive. */
+export const useMenuBGM = (musicOn: boolean, volume: number, mood: BgmMood = 'menu') => {
   const audioCtxRef = useRef<AudioContext | null>(null);
   const masterGainRef = useRef<GainNode | null>(null);
-  const nextNoteTimeRef = useRef<number>(0);
-  const noteIndexRef = useRef<number>(0);
+  const nextNoteTimeRef = useRef(0);
+  const noteIndexRef = useRef(0);
 
-  // Inicialización y limpieza del AudioContext
   useEffect(() => {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
-    
+    const AudioContextClass = window.AudioContext ?? (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return undefined;
     const ctx = new AudioContextClass();
-    audioCtxRef.current = ctx;
-    
     const masterGain = ctx.createGain();
-    masterGain.gain.value = 0; // Inicializar en 0, el efecto de volumen lo ajustará
+    masterGain.gain.value = 0;
     masterGain.connect(ctx.destination);
+    audioCtxRef.current = ctx;
     masterGainRef.current = masterGain;
-
     return () => {
-      if (ctx.state !== 'closed') {
-        ctx.close();
-      }
+      if (ctx.state !== 'closed') void ctx.close();
       audioCtxRef.current = null;
       masterGainRef.current = null;
     };
   }, []);
 
-  // Efecto para reaccionar a cambios en el volumen sin reiniciar la música
-  useEffect(() => {
-    if (masterGainRef.current && audioCtxRef.current) {
-      masterGainRef.current.gain.setTargetAtTime(
-        Math.max(0, Math.min(1, volume)),
-        audioCtxRef.current.currentTime,
-        0.1
-      );
-    }
-  }, [volume]);
-
-  // Lógica de programación de notas (scheduler) e interpolación
   useEffect(() => {
     const ctx = audioCtxRef.current;
-    if (!ctx) return;
+    const masterGain = masterGainRef.current;
+    if (ctx && masterGain) masterGain.gain.setTargetAtTime(Math.max(0, Math.min(1, volume)), ctx.currentTime, 0.1);
+  }, [volume]);
 
-    let timerID: number | null = null;
+  useEffect(() => {
+    noteIndexRef.current = 0;
+    nextNoteTimeRef.current = 0;
+  }, [mood]);
+
+  useEffect(() => {
+    const ctx = audioCtxRef.current;
+    const profile = bgmProfileForMood(mood);
+    if (!ctx) return undefined;
+    let timerId: number | null = null;
 
     const playNote = (time: number) => {
-      if (!masterGainRef.current) return;
-      
-      const osc1 = ctx.createOscillator();
-      const osc2 = ctx.createOscillator();
+      const masterGain = masterGainRef.current;
+      if (!masterGain) return;
+      const primary = ctx.createOscillator();
+      const secondary = ctx.createOscillator();
       const noteGain = ctx.createGain();
-
-      // Timbre suave y brillante (kawaii)
-      osc1.type = 'sine';
-      osc2.type = 'triangle';
-      
-      // Patrón de arpegio relajante
-      const pattern = [0, 2, 4, 1, 3, 5, 2, 4, 6, 3, 5, 1];
-      const idx = noteIndexRef.current % pattern.length;
-      const freq = scale[pattern[idx]];
-      
-      osc1.frequency.value = freq;
-      osc2.frequency.value = freq * 1.005; // Ligero desafine (detune) para dar efecto chorus
-
-      osc1.connect(noteGain);
-      osc2.connect(noteGain);
-      noteGain.connect(masterGainRef.current);
-
-      // Envolvente (Envelope): Ataque suave y release muy largo para efecto de "sustain"
+      const index = noteIndexRef.current % profile.pattern.length;
+      const frequency = profile.scale[profile.pattern[index]];
+      primary.type = profile.primaryWave;
+      secondary.type = profile.secondaryWave;
+      primary.frequency.value = frequency;
+      secondary.frequency.value = frequency * 1.004;
+      primary.connect(noteGain);
+      secondary.connect(noteGain);
+      noteGain.connect(masterGain);
       noteGain.gain.setValueAtTime(0, time);
-      noteGain.gain.linearRampToValueAtTime(0.15, time + 0.05);
-      noteGain.gain.exponentialRampToValueAtTime(0.001, time + 1.2);
-
-      osc1.start(time);
-      osc2.start(time);
-      osc1.stop(time + 1.2);
-      osc2.stop(time + 1.2);
-
-      noteIndexRef.current++;
+      noteGain.gain.linearRampToValueAtTime(0.12, time + 0.06);
+      noteGain.gain.exponentialRampToValueAtTime(0.001, time + profile.release);
+      primary.start(time);
+      secondary.start(time);
+      primary.stop(time + profile.release);
+      secondary.stop(time + profile.release);
+      noteIndexRef.current += 1;
     };
 
-    const scheduler = () => {
-      // Lookahead para asegurar que las notas siempre estén programadas a tiempo
-      while (nextNoteTimeRef.current < ctx.currentTime + 0.1) {
+    const schedule = () => {
+      while (nextNoteTimeRef.current < ctx.currentTime + 0.12) {
         playNote(nextNoteTimeRef.current);
-        nextNoteTimeRef.current += 0.25; // Separación de notas (BPM relajado)
+        nextNoteTimeRef.current += profile.interval;
       }
     };
 
     if (musicOn) {
-      if (ctx.state === 'suspended') {
-        ctx.resume();
-      }
-      // Si el tiempo avanzó mientras estaba pausado, resetear el reloj para el scheduler
-      if (nextNoteTimeRef.current < ctx.currentTime) {
-        nextNoteTimeRef.current = ctx.currentTime + 0.05;
-      }
-      timerID = window.setInterval(scheduler, 25);
-    } else {
-      if (ctx.state === 'running') {
-        ctx.suspend();
-      }
+      if (ctx.state === 'suspended') void ctx.resume();
+      if (nextNoteTimeRef.current < ctx.currentTime) nextNoteTimeRef.current = ctx.currentTime + 0.05;
+      timerId = window.setInterval(schedule, 30);
+    } else if (ctx.state === 'running') {
+      void ctx.suspend();
     }
 
-    return () => {
-      // Limpieza del intervalo
-      if (timerID !== null) {
-        window.clearInterval(timerID);
-      }
-    };
-  }, [musicOn]);
+    return () => { if (timerId !== null) window.clearInterval(timerId); };
+  }, [mood, musicOn]);
 };

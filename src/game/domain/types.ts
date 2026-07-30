@@ -1,4 +1,6 @@
-export type GameMode = 'classic' | 'es_en' | 'en_es';
+export type MathOperation = 'addition' | 'subtraction' | 'multiplication' | 'division' | 'fractions';
+export type MathGameMode = 'math_classic' | 'math_addition' | 'math_subtraction' | 'math_multiplication' | 'math_division' | 'math_fractions';
+export type GameMode = 'classic' | 'es_en' | 'en_es' | MathGameMode;
 export type Tier = 1 | 2 | 3 | 4 | 5;
 export type PowerUp = 'breeze' | 'shield';
 
@@ -26,6 +28,8 @@ export interface CloudState {
   speed: number;
   feedback?: string;
   feedbackUntilMs?: number;
+  answer?: string;
+  operation?: MathOperation;
 }
 
 export interface RunState {
@@ -45,6 +49,7 @@ export interface RunState {
   mistakes: number;
   typedCharacters: number;
   powerCharges: number;
+  mathCorrectAtTier: number;
   shieldActive: boolean;
   slowUntilMs: number;
   status: 'playing' | 'paused' | 'finished';

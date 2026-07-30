@@ -4,7 +4,8 @@ import { useGameBGM } from '../components/audio/useGameBGM';
 import { useSFX } from '../components/audio/useSFX';
 import { CONTENT_CATALOG } from '../content/catalog';
 import { createRunConfig } from '../game/domain/engine';
-import type { RunEvent, RunInput, RunResult, RunState, Tier } from '../game/domain/types';
+import { isMathGameMode } from '../game/domain/math';
+import type { GameMode, RunEvent, RunInput, RunResult, RunState, Tier } from '../game/domain/types';
 import type { PhaserGameHandle } from '../game/phaser/PhaserGame';
 import './GameScreen.css';
 
@@ -22,14 +23,20 @@ interface Props {
   setMusicOn: (value: boolean) => void;
   volume: number;
   setVolume: (value: number) => void;
-  gameMode: 'classic' | 'es_en' | 'en_es';
+  gameMode: GameMode;
   onExit: () => void;
 }
 
-const modeLabels = {
+const modeLabels: Record<GameMode, string> = {
   classic: 'Escribe la palabra de la nube más baja',
   es_en: 'Traduce al inglés y confirma',
   en_es: 'Traduce al español y confirma',
+  math_classic: 'Resuelve y confirma la operación',
+  math_addition: 'Suma y confirma el resultado',
+  math_subtraction: 'Resta y confirma el resultado',
+  math_multiplication: 'Multiplica y confirma el resultado',
+  math_division: 'Divide exacto y confirma el resultado',
+  math_fractions: 'Opera fracciones y simplifica',
 };
 
 const formatTime = (milliseconds: number) => {
@@ -137,14 +144,14 @@ export function GameScreen({
         dispatch({ type: 'backspace' });
         return;
       }
-      if (/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ ]$/.test(event.key)) {
+      if ((isMathGameMode(gameMode) && /^[0-9/]$/.test(event.key)) || /^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ ]$/.test(event.key)) {
         event.preventDefault();
         dispatch({ type: 'key', key: event.key });
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [dispatch, isPaused]);
+  }, [dispatch, gameMode, isPaused]);
 
   const togglePause = () => dispatch({ type: isPaused ? 'resume' : 'pause' });
   const handleVirtualKey = (key: string) => {
@@ -155,7 +162,7 @@ export function GameScreen({
   const timeRemaining = config.durationMs - (snapshot?.elapsedMs ?? 0);
 
   return (
-    <main className={`game-screen tier-${snapshot?.tier ?? baseTier}`}>
+    <main className={`game-screen tier-${snapshot?.tier ?? baseTier} ${isMathGameMode(gameMode) ? 'math-game' : ''}`}>
       <div className={`damage-flash ${flashDamage ? 'is-visible' : ''}`} aria-hidden="true" />
 
       <header className="game-hud">
@@ -188,7 +195,7 @@ export function GameScreen({
         </Suspense>
         {gameMode !== 'classic' && snapshot?.inputBuffer && <p className="translation-preview">Respuesta: <strong>{snapshot.inputBuffer}</strong></p>}
         <p className="river-warning">No dejes que las nubes lleguen al río</p>
-        <div className="run-metrics" aria-label="Métricas de partida"><span>{snapshot?.correctWords ?? 0} palabras</span><span>{snapshot ? Math.round((snapshot.typedCharacters / 5) / Math.max(snapshot.elapsedMs / 60000, 1 / 60)) : 0} PPM</span></div>
+        <div className="run-metrics" aria-label="Métricas de partida"><span>{snapshot?.correctWords ?? 0} {isMathGameMode(gameMode) ? 'respuestas' : 'palabras'}</span><span>{snapshot ? Math.round((snapshot.typedCharacters / 5) / Math.max(snapshot.elapsedMs / 60000, 1 / 60)) : 0} PPM</span></div>
 
         {isPaused && (
           <div className="pause-overlay" role="dialog" aria-modal="true" aria-label="Partida pausada">
@@ -211,7 +218,7 @@ export function GameScreen({
         <button className="power-button" disabled={!snapshot?.powerCharges} onClick={() => dispatch({ type: 'powerup', powerUp: 'breeze' })}>〰 Calma ×{snapshot?.powerCharges ?? 0}</button>
         <button className="power-button" disabled={!snapshot?.powerCharges} onClick={() => dispatch({ type: 'powerup', powerUp: 'shield' })}>✦ Escudo</button>
       </section>
-      <VirtualKeyboard onKeyPress={handleVirtualKey} showControls={gameMode !== 'classic'} />
+      <VirtualKeyboard onKeyPress={handleVirtualKey} showControls={gameMode !== 'classic'} showResponseKeys={isMathGameMode(gameMode)} />
     </main>
   );
 }

@@ -8,6 +8,10 @@ Objetivo inicial: Windows 10/11 x64, guardado local y distribución premium.
 No se iniciará Steam, compras ni actualización automática hasta disponer de
 cuenta de tienda, claves de firma y una versión web validada.
 
+Keyboard test se mantiene inicialmente como herramienta gratuita exclusiva de
+la web. Una futura adaptación de escritorio necesitará una decisión de producto
+separada antes de incluirla en el empaquetado premium.
+
 ## Entrada prevista
 
 - `npm run build` genera la interfaz estática que Tauri cargará.

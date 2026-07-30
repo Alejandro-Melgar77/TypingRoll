@@ -1,12 +1,12 @@
 # Ejecución de fases
 
-## Estado al 25 de julio de 2026
+## Estado al 30 de julio de 2026
 
 | Fase | Estado | Entregable |
 | --- | --- | --- |
 | 0. Base | Completada | Git, CI, contratos, variables públicas y build web |
 | 1. Núcleo | Completada | Motor puro, semillas, Phaser, dificultad, métricas, pausas y poderes |
-| 2. UX web | Completada | Tutorial, progreso, reto diario, catálogo, audio y accesibilidad |
+| 2. UX web | Completada | Tutorial, progreso, reto diario, catálogo, Matemáticas, Párrafo, Keyboard test, audio y accesibilidad |
 | 3. Contenido/servicio | Completada como integración local | Catálogo versionado, validación, migración Supabase, RLS y función idempotente |
 | 4. Beta web | En preparación | Revisión con jugadores, analítica anónima, dominio y Cloudflare Pages |
 | 5. Escritorio | Pendiente por puerta de beta | Tauri y Windows |
@@ -16,11 +16,14 @@
 ## Validación ejecutada
 
 - Motor: pruebas deterministas de semilla, aciertos, daño, traducción,
-  pausa y final de tiempo.
+  pausa, final de tiempo, progresión matemática, divisiones exactas y
+  fracciones reducidas.
 - Integración: `npm run lint`, `npm run test`, validación de contenido y
   `npm run build`.
-- Navegador: inicio, tutorial, selección de modo/dificultad, carga de Phaser y
-  HUD de partida verificados en escritorio.
+- Navegador: Playwright verifica escritorio y móvil: navegación de Keyboard
+  test, cambios instantáneos, teclas iluminadas, limpieza, entrega estricta de
+  Párrafo, selección de Autoayuda bíblica con referencia y ruta Matemáticas →
+  Aritmética.
 
 ## Cierre de beta web
 

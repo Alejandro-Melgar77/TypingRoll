@@ -11,7 +11,7 @@ mismo núcleo pasará después a escritorio y móvil.
 | Área | Decisión |
 | --- | --- |
 | Juego | Phaser + TypeScript, motor puro y reproducible separado de React |
-| Interfaz | React para inicio, tutorial, progreso, catálogo y HUD |
+| Interfaz | React para inicio, tutorial, progreso, catálogo, Párrafo, Keyboard test y HUD |
 | Datos | Packs tipados, cliente local y esquema Supabase opcional con RLS |
 | Identidad | Jugador invitado; Supabase anónimo solo al habilitar el servicio |
 | Economía | Cosméticos no competitivos; sin cobros ni anuncios en web |
@@ -21,6 +21,16 @@ mismo núcleo pasará después a escritorio y móvil.
 
 - Partidas cortas de supervivencia, fases adaptables, métricas PPM/precisión,
   poderes ganados por racha, logros y reto diario.
+- Matemáticas usa el mismo flujo de nubes con una progresión propia y
+  determinista: seis aciertos exactos aumentan la fase; Clásico va mezclando
+  operaciones, mientras cada ruta específica conserva la suya.
+- Párrafo infinito es una práctica local, sin monedas ni récord global, con
+  120 textos originales revisados en seis colecciones y Clásico mixto. Las
+  reflexiones bíblicas muestran referencias sin copiar una traducción, y cada
+  colección activa una composición procedural propia.
+- Keyboard test es una puerta de producto para teclados mecánicos kawaii:
+  personalización instantánea, layouts ANSI/ISO y formatos 60/75/100, sin
+  pagos ni almacenamiento remoto en la web.
 - Tutorial de tres pasos y dificultad suave al inicio; la presión escala de
   forma gradual, no por saturación inmediata de nubes.
 - Temporadas de ocho semanas: Noche Neón, Bosque Aurora y Océano Celeste están

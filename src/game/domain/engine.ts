@@ -1,4 +1,5 @@
 import type { CloudState, GameMode, PowerUp, RunConfig, RunEvent, RunInput, RunResult, RunState, RunTransition, Tier } from './types';
+import { createMathChallenge, isMathGameMode } from './math';
 
 const MAX_LIVES = 3;
 const MAX_TIER: Tier = 5;
@@ -6,6 +7,7 @@ const COMBO_FOR_RESTORE = 5;
 const COMBO_FOR_POWER = 8;
 const RIVER_LIMIT = 0.84;
 const NORMALIZED_KEY = /^[A-ZÁÉÍÓÚÜÑ ]$/;
+const RESPONSE_KEY = /^[A-ZÁÉÍÓÚÜÑ 0-9/]$/;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
@@ -53,6 +55,7 @@ const accuracyFor = (state: RunState) => {
 };
 
 const maybeAdaptTier = (state: RunState, events: RunEvent[]): RunState => {
+  if (isMathGameMode(state.config.gameMode)) return state;
   const attempts = state.correctWords + state.mistakes;
   if (!attempts || attempts % 8 !== 0) return state;
   const accuracy = accuracyFor(state);
@@ -103,12 +106,42 @@ const clearCloud = (state: RunState, cloud: CloudState, typedLength: number, eve
     typedCharacters: state.typedCharacters + typedLength,
   };
   events.push({ type: 'word-cleared', cloudId: cloud.id, scoreDelta });
+  if (isMathGameMode(state.config.gameMode)) {
+    const mathCorrectAtTier = preliminary.mathCorrectAtTier + 1;
+    const tier = mathCorrectAtTier >= 6 && preliminary.tier < MAX_TIER
+      ? (preliminary.tier + 1) as Tier
+      : preliminary.tier;
+    if (tier !== preliminary.tier) events.push({ type: 'tier-changed', tier });
+    return { ...preliminary, tier, mathCorrectAtTier: tier === preliminary.tier ? mathCorrectAtTier : 0 };
+  }
   const withScoreTier = { ...preliminary, tier: tierFromScore(preliminary.score, preliminary.config.baseTier) };
   if (withScoreTier.tier !== state.tier) events.push({ type: 'tier-changed', tier: withScoreTier.tier });
   return maybeAdaptTier(withScoreTier, events);
 };
 
 const spawnCloud = (state: RunState, events: RunEvent[]): RunState => {
+  if (isMathGameMode(state.config.gameMode)) {
+    const generated = createMathChallenge(state.config.gameMode, state.tier, state.randomState);
+    const position = nextRandom({ ...state, randomState: generated.randomState });
+    const cloud: CloudState = {
+      id: `cloud-${state.nextCloudId}`,
+      word: generated.challenge.prompt,
+      typed: '',
+      x: 0.12 + position.value * 0.76,
+      y: -0.09,
+      speed: speedForTier(state.tier),
+      answer: generated.challenge.answer,
+      operation: generated.challenge.operation,
+    };
+    events.push({ type: 'cloud-spawned', cloud });
+    return {
+      ...state,
+      clouds: [...state.clouds, cloud],
+      randomState: position.randomState,
+      nextCloudId: state.nextCloudId + 1,
+      nextSpawnAtMs: state.elapsedMs + spawnRateForTier(state.tier),
+    };
+  }
   const currentWords = availableWords(state);
   if (!currentWords.length) return state;
   const active = new Set(state.clouds.map((cloud) => cloud.word));
@@ -152,6 +185,7 @@ export const createRun = (config: RunConfig): RunState => ({
   mistakes: 0,
   typedCharacters: 0,
   powerCharges: 0,
+  mathCorrectAtTier: 0,
   shieldActive: false,
   slowUntilMs: 0,
   status: 'playing',
@@ -202,12 +236,12 @@ const applyClassicKey = (state: RunState, key: string, events: RunEvent[]): RunS
   return updated.typed === normalizedWord ? clearCloud(updatedState, updated, updated.typed.length, events) : updatedState;
 };
 
-const applyTranslationConfirm = (state: RunState, events: RunEvent[]): RunState => {
+const applyResponseConfirm = (state: RunState, events: RunEvent[]): RunState => {
   const target = lowestCloud(state.clouds);
   if (!target) return { ...state, inputBuffer: '' };
-  const answers = state.config.translations[target.word] ?? [];
-  const answer = normalizeText(state.inputBuffer);
-  if (answer && answers.some((translation) => normalizeText(translation) === answer)) {
+  const answers = target.answer ? [target.answer] : state.config.translations[target.word] ?? [];
+  const answer = normalizeText(state.inputBuffer).replace(/\s/g, '');
+  if (answer && answers.some((translation) => normalizeText(translation).replace(/\s/g, '') === answer)) {
     return clearCloud({ ...state, targetId: target.id }, target, answer.replace(/\s/g, '').length, events);
   }
   const feedback = answers[0] ? `Respuesta: ${answers[0]}` : 'Sin respuesta';
@@ -233,9 +267,9 @@ export const reduceRun = (state: RunState, input: RunInput): RunTransition => {
   if (state.status !== 'playing') return { state, events };
   if (input.type === 'powerup') return { state: applyPowerUp(state, input.powerUp, events), events };
   if (state.config.gameMode !== 'classic') {
-    if (input.type === 'confirm') return { state: applyTranslationConfirm(state, events), events };
+    if (input.type === 'confirm') return { state: applyResponseConfirm(state, events), events };
     if (input.type === 'backspace') return { state: { ...state, inputBuffer: state.inputBuffer.slice(0, -1) }, events };
-    if (input.type === 'key' && NORMALIZED_KEY.test(input.key.toUpperCase())) {
+    if (input.type === 'key' && RESPONSE_KEY.test(input.key.toUpperCase())) {
       return { state: { ...state, inputBuffer: `${state.inputBuffer}${input.key.toUpperCase()}` }, events };
     }
     return { state, events };

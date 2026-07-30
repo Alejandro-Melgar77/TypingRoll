@@ -8,13 +8,18 @@ import { GameScreen } from './screens/GameScreen';
 import { TutorialScreen } from './screens/TutorialScreen';
 import { ProgressScreen } from './screens/ProgressScreen';
 import { CatalogScreen } from './screens/CatalogScreen';
+import { ParagraphScreen } from './screens/ParagraphScreen';
+import { KeyboardTestScreen } from './screens/KeyboardTestScreen';
 import { useMenuBGM } from './components/audio/useMenuBGM';
 import { createDailyChallenge } from './content/catalog';
+import type { ParagraphMode } from './content/types';
 import type { PlayerProgressPreview } from './components/ui/experienceTypes';
 import type { AccessibilityPreferences } from './components/ui/AccessibilityControls';
+import { isMathGameMode } from './game/domain/math';
+import type { GameMode as DomainGameMode } from './game/domain/types';
 
-export type ScreenState = 'PRESENTATION' | 'HOME' | 'CATEGORIES' | 'GAME' | 'GAMEOVER' | 'TUTORIAL' | 'PROGRESS' | 'CATALOG';
-export type GameMode = 'classic' | 'es_en' | 'en_es';
+export type ScreenState = 'PRESENTATION' | 'HOME' | 'CATEGORIES' | 'GAME' | 'GAMEOVER' | 'TUTORIAL' | 'PROGRESS' | 'CATALOG' | 'PARAGRAPH' | 'KEYBOARD_TEST';
+export type GameMode = DomainGameMode;
 
 interface PlayerProfile {
   coins: number;
@@ -50,6 +55,7 @@ function App() {
     }
   });
   const [gameMode, setGameMode] = useState<GameMode>('classic');
+  const [paragraphMode, setParagraphMode] = useState<ParagraphMode>('classic');
 
   const [sessionUser, setSessionUser] = useState<string | null>(() => {
     return localStorage.getItem('typingroll_session');
@@ -93,13 +99,13 @@ function App() {
   const [lastRunScore, setLastRunScore] = useState(0);
 
   // BGM
-  const isMenu = currentScreen !== 'GAME';
+  const isMenu = currentScreen !== 'GAME' && currentScreen !== 'PARAGRAPH' && currentScreen !== 'KEYBOARD_TEST';
   useMenuBGM(musicOn && isMenu, volume / 100);
 
   const startGame = (mode: GameMode, tier: number) => {
     setGameMode(mode);
     setLastScore(0);
-    setBaseTier(tier);
+    setBaseTier(isMathGameMode(mode) ? 1 : tier);
     setCheckpointScore(0);
     setRevivalCount(0);
     setLastEarnedCoins(0);
@@ -179,6 +185,7 @@ function App() {
           onShowTutorial={() => setCurrentScreen('TUTORIAL')}
           onShowProgress={() => setCurrentScreen('PROGRESS')}
           onShowCatalog={() => setCurrentScreen('CATALOG')}
+          onShowKeyboardTest={() => setCurrentScreen('KEYBOARD_TEST')}
           accessibilityPreferences={accessibilityPreferences}
           onAccessibilityPreferencesChange={setAccessibilityPreferences}
         />
@@ -188,6 +195,7 @@ function App() {
         <CategoriesScreen 
           onBack={() => setCurrentScreen('HOME')}
           onSelectCategory={startGame}
+          onStartParagraph={(mode) => { setParagraphMode(mode); setCurrentScreen('PARAGRAPH'); }}
           coins={globalCoins}
         />
       )}
@@ -218,6 +226,27 @@ function App() {
           onBack={() => setCurrentScreen('HOME')}
           accessibilityPreferences={accessibilityPreferences}
           onAccessibilityPreferencesChange={setAccessibilityPreferences}
+        />
+      )}
+
+      {currentScreen === 'PARAGRAPH' && (
+        <ParagraphScreen
+          mode={paragraphMode}
+          musicOn={musicOn}
+          setMusicOn={setMusicOn}
+          volume={volume}
+          setVolume={setVolume}
+          onExit={() => setCurrentScreen('CATEGORIES')}
+        />
+      )}
+
+      {currentScreen === 'KEYBOARD_TEST' && (
+        <KeyboardTestScreen
+          musicOn={musicOn}
+          setMusicOn={setMusicOn}
+          volume={volume}
+          setVolume={setVolume}
+          onBack={() => setCurrentScreen('HOME')}
         />
       )}
 

@@ -19,6 +19,7 @@ interface Props {
   onShowTutorial?: () => void;
   onShowProgress?: () => void;
   onShowCatalog?: () => void;
+  onShowKeyboardTest?: () => void;
   accessibilityPreferences?: AccessibilityPreferences;
   onAccessibilityPreferencesChange?: (preferences: AccessibilityPreferences) => void;
 }
@@ -41,6 +42,7 @@ export function HomeScreen({
   onShowTutorial,
   onShowProgress,
   onShowCatalog,
+  onShowKeyboardTest,
   accessibilityPreferences,
   onAccessibilityPreferencesChange,
 }: Props) {
@@ -76,11 +78,12 @@ export function HomeScreen({
               <button className="btn-secondary" type="button" onClick={() => setPanel('profile')}>{sessionUser ? 'Editar apodo' : 'Elegir apodo'}</button>
               <button className="btn-secondary home-settings-button" type="button" onClick={() => setPanel('settings')}>Ajustes</button>
             </div>
-            {(onShowTutorial || onShowProgress || onShowCatalog) && (
+            {(onShowTutorial || onShowProgress || onShowCatalog || onShowKeyboardTest) && (
               <nav className="home-hub-links" aria-label="Más opciones de TypingRoll">
                 {onShowTutorial && <button type="button" onClick={onShowTutorial}><span aria-hidden="true">☁</span>Guía rápida</button>}
                 {onShowProgress && <button type="button" onClick={onShowProgress}><span aria-hidden="true">✦</span>Mi progreso</button>}
                 {onShowCatalog && <button type="button" onClick={onShowCatalog}><span aria-hidden="true">🎨</span>Catálogo</button>}
+                {onShowKeyboardTest && <button type="button" onClick={onShowKeyboardTest}><span aria-hidden="true">⌨</span>Keyboard test</button>}
               </nav>
             )}
             <p className="home-welcome">{sessionUser ? `¡Qué bueno verte, ${playerName}!` : 'Juega al instante. Sin registro ni pagos.'}</p>

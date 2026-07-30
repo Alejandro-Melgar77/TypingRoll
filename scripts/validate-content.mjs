@@ -4,8 +4,10 @@ import { fileURLToPath } from 'node:url';
 
 const scriptDirectory = fileURLToPath(new URL('.', import.meta.url));
 const catalogPath = resolve(scriptDirectory, '../src/content/catalog.ts');
+const paragraphsPath = resolve(scriptDirectory, '../src/content/paragraphs.ts');
 const releaseMode = process.argv.includes('--release');
 const catalogSource = readFileSync(catalogPath, 'utf8');
+const paragraphsSource = readFileSync(paragraphsPath, 'utf8');
 const payloadMatch = catalogSource.match(/const CONTENT_VALIDATION_PAYLOAD = String\.raw`([\s\S]*?)`;/);
 
 if (!payloadMatch) {
@@ -34,6 +36,8 @@ const blockedTerms = [
   'ANAL', 'ASESINO', 'COCAINA', 'DROGA', 'ESTUPRO', 'FASCISTA', 'GORE', 'MIERDA', 'NAZI',
   'PENE', 'PUTA', 'PUTO', 'RACISTA', 'SEXO', 'VIOLACION',
 ];
+const paragraphTexts = [...paragraphsSource.matchAll(/text: '([^']+)'/g)].map(([, text]) => text);
+const paragraphCategories = ['poetic', 'motivational-literature', 'romanticism', 'self-improvement', 'biblical-self-help', 'constructive-dialogues'];
 
 function fail(message) {
   errors.push(message);
@@ -56,6 +60,19 @@ function validateId(value, label) {
     fail(`${label} debe ser un identificador estable en minúsculas.`);
   }
 }
+
+if (paragraphTexts.length < 120) fail(`Se requieren al menos 120 párrafos locales seguros; se encontraron ${paragraphTexts.length}.`);
+const uniqueParagraphTexts = new Set();
+for (const [index, paragraphText] of paragraphTexts.entries()) {
+  const label = `párrafo ${index + 1}`;
+  if (uniqueParagraphTexts.has(paragraphText)) fail(`Texto de párrafo repetido: ${label}`);
+  uniqueParagraphTexts.add(paragraphText);
+  if (paragraphText.trim() !== paragraphText || paragraphText.length < 40 || paragraphText.length > 220) {
+    fail(`Longitud o espacios inválidos en ${label}.`);
+  }
+  for (const blocked of blockedTerms) if (normalize(paragraphText).includes(blocked)) fail(`Término bloqueado detectado en ${label}.`);
+}
+for (const category of paragraphCategories) if (!paragraphsSource.includes(`buildEntries('${category}'`)) fail(`Categoría de Párrafo ausente: ${category}.`);
 
 const packs = requireArray(catalog.packs, 'packs');
 const words = requireArray(catalog.words, 'words');
@@ -181,4 +198,4 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log(`Contenido válido: ${packs.length} packs, ${words.length} palabras, ${translations.length} traducciones, ${cosmetics.length} cosméticos y ${seasons.length} temporadas.`);
+console.log(`Contenido válido: ${packs.length} packs, ${words.length} palabras, ${translations.length} traducciones, ${paragraphTexts.length} párrafos, ${cosmetics.length} cosméticos y ${seasons.length} temporadas.`);

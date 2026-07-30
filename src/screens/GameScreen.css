@@ -80,6 +80,9 @@
 @media (max-width: 640px) {
   .game-hud { min-height: 68px; grid-template-columns: 1fr auto; gap: 8px; padding: 8px 12px; }
   .game-status { display: none; }
+  .math-game .game-hud { min-height: 91px; }
+  .math-game .game-status { display: grid; grid-column: 1 / -1; grid-row: 2; gap: 1px; font-size: .66rem; line-height: 1.1; }
+  .math-game .phase-label { font-size: .65rem; }
   .hud-pill, .combo-meter { padding: 5px 8px; gap: 4px; }
   .combo-meter i { display: none; }
   .lives { font-size: 1.15rem; }
